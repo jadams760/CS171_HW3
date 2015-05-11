@@ -1,0 +1,112 @@
+import threading
+from threading import Thread
+import types
+import socket
+import time
+import array
+import pickle
+import sys
+import random
+
+x = 0
+HOSTNAME = "localhost"
+PORT = 9990
+
+
+LOGHOST = "localhost"
+LOGPORT = 9999
+
+locks = ['','','','','']
+sites = [] ##(siteID, HOSTNAME, PORT)
+quorum = []
+
+def myConnect(socket,host,port):
+    while True: ## send message to log
+        try:
+            socket.connect(host,port)
+            break
+        except:
+            continue
+        
+def mySend(socket,send):
+    socket.send(pickle.dumps(send))
+    
+def myReceive(socket):
+    while True: ## send message to log
+        try:
+            receive = socket.recv(4096)
+            break
+        except:
+            continue
+    return pickle.loads(receive)
+        
+def CLI(siteID):
+    while True:
+        print("Please Enter One of the Following and Press Enter:\n(1) Read\n(2) Append\n(3) Exit")
+        x = input()
+        if x == "1":
+            print("read")
+            while len(quorum) < 2:  ## set up quorum
+                qSite = random.choice(sites)
+                if qSite[0] == siteID:
+                    continue
+                elif qSite in quorum:
+                    continue
+                else:
+                    quorum.append(qSite)
+                    
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            myConnect(s,quorum[0][1], quorum[0][2])
+            mySend("Read")
+            message = myReceive(s)
+            if message == "GrantRead":
+                continue
+            else:
+                print("Incorrect Grant Message")
+                break
+            
+            myConnect(s,quorum[1][1], quorum[1][2])
+            mySend("Read")
+            message = myReceive(s)
+            if message == "GrantRead":
+                continue
+            else:
+                print("Incorrect Grant Message")
+                break
+
+
+            while 'w' in locks: ## check if there are any active write locks
+                continue
+
+            myConnect(s,LOGHOST, LOGPORT)
+            send = ["Read", quorum[0][0], quorum[1][0], siteID]
+            mySend(send)
+            message = myReceive(s)
+            print(message)
+
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            myConnect(s,quorum[0][1], quorum[0][2])
+            mySend("release")
+            s.close()
+            
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            myConnect(s,quorum[1][1], quorum[1][2])
+            mySend("release")
+            s.close()
+            
+
+                
+        if x == "2":
+            print("append")
+
+            
+        if x == "3":
+            print("exit")
+            sys.exit(1)
+
+            
+        else:
+            continue
+
+def Comm(siteID):
+    
