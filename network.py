@@ -33,7 +33,7 @@ class Network(threading.Thread):
 
     def handle(self, conn):
         message = pickle.loads(conn.recv(4092))
-        conn.send("ack")
+        conn.send(pickle.dumps("ack"))
         messageType = message[0]
         sender = message[1]
         ## We can have two types of locks, reads and writes. We handle both here.
@@ -51,7 +51,7 @@ class Network(threading.Thread):
                         if not activeLocks and (requestedLocks[0] == lockDict):
                             activeLocks.append(lockDict)
                             break
-                conn.send("grant")
+                conn.send(pickle.dumps("grant"))
                 conn.close()
 
             elif (lockType == 'read'):
@@ -64,12 +64,12 @@ class Network(threading.Thread):
                         if (not activeLocks and (requestedLocks[0] == lockDict)) or (activeLocks and activeLocks[0]['type'] == 'read'):
                             activeLocks.append(lockDict)
                             break
-                conn.send("grant")
+                conn.send(pickle.dumps("grant"))
 
         elif (messageType == 'release'):
             with activeLocksLock:
                 activeLocks = list(filter(lambda lock: lock['sender'] != sender, activeLocks))
-            conn.send("ack")
+            conn.send(pickle.dumps("ack"))
         conn.close()
         return
 

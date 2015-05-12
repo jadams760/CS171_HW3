@@ -21,29 +21,16 @@ class CLI(threading.Thread):
         self.sites = sites
         self.network = network.Network(self.port,len(sites),self.siteID)
     def myConnect(self,socket,host,port):
-        try:
-            socket.connect(host,port)
-            
-        except:
-            print("No Connect")
+        socket.connect((host,port))
+        print("No Connect")
 
     def mySend(self,socket,send):
-        try:
-            socket.send(pickle.dumps(send))
-            socket.close()
-            
-        except:
-            print("No Send")
+        socket.send(pickle.dumps(send))
+        print("No Send")
 
     def myReceive(self,socket):
-        try:
-            receive = socket.recv(4096)
-            
-        except:
-            print("No Receive\n")
-            return "No Receive"
+        receive = socket.recv(4096)
         return pickle.loads(receive)
-    
     def run(self):
         self.network.start()
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -54,7 +41,6 @@ class CLI(threading.Thread):
                 quorum = []
                 quorum.append((self.siteID,localhost,9990+self.siteID))
                 while len(quorum) < 3:
-                   
                     qSite = random.choice(self.sites)
                     if int(qSite[0]) == self.siteID:
                         continue
@@ -73,7 +59,7 @@ class CLI(threading.Thread):
                 else:
                     print("not grant")
                     return False
-                
+
                 self.myConnect(sock,quorum[0][1], quorum[0][2])
                 send = ["lock","read", self.siteID]
                 self.mySend(sock,send)
@@ -84,7 +70,7 @@ class CLI(threading.Thread):
                 else:
                     print("not grant")
                     return False
-                
+
                 self.myConnect(sock,quorum[1][1], quorum[1][2])
                 send = ["lock","read", self.siteID]
                 self.mySend(sock,send)
@@ -96,7 +82,7 @@ class CLI(threading.Thread):
                     print("not grant")
                     return False
 
-                
+
                 self.myConnect(sock,LogHost,LogPort) ##send "read" to log and print response
                 qList = [quoum[0][0],quoum[1][0],quoum[2][0]]
                 send = ["read", qList]
@@ -110,7 +96,7 @@ class CLI(threading.Thread):
                     print(receive)
                     send = ["ack", self.siteID]
                     self.mySend(sock,send)
-                
+
 
 
                 send = ["release", self.siteID]
@@ -126,9 +112,9 @@ class CLI(threading.Thread):
                 self.myConnect(sock,quorum[1][1], quorum[1][2]) ##send "release" to qSite2 and print "ack"
                 self.mySend(sock,send)
                 sock.close() ##close since no response needed after release
-    
-                
-                
+
+
+
             elif userInput == "2":
                 userInput = input("Please enter a message to append:\n")
                 userInput = userInput[:140]
@@ -143,15 +129,15 @@ class CLI(threading.Thread):
 
 
 def main():
-    
+
     t = CLI(1,sites,'localhost',9001,'localhost',9999)
     t.start()
 
 if __name__ == "__main__":
     main()
 
-        
-            
+
+
 
 
 
