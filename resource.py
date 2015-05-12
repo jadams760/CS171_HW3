@@ -57,4 +57,7 @@ class Resource:
         conn.close()
         return
 
+if __name__ == '__main__':
+    resource = Resource(10005, 'localhost')
+    resource.run()
 

@@ -7,19 +7,14 @@ import sys
 from pprint import pprint
 
 class Network(threading.Thread):
-    def __init__(self, port, actorLog, actorTable, actorDict, totalActors, actorID):
+    def __init__(self, port, totalActors, actorID):
         threading.Thread.__init__(self)
         self.portNum = port
         self.ipAddr = 'localhost'
         # treat the network as a daemon
         self.daemon = True
-        self.actorLog = actorLog
-        self.actorDict = actorDict
-        self.actorTable = actorTable
-        self.transmissions = 0
         self.totalActors = totalActors
         self.actorID = actorID
-        self.isRequesting = False
         self.activeLocksLock = threading.RLock()
         self.requestedLocksLock = threading.RLock()
         self.activeLocks = []
