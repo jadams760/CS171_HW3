@@ -22,11 +22,9 @@ class CLI(threading.Thread):
         self.network = network.Network(self.port,len(sites),self.siteID)
     def myConnect(self,socket,host,port):
         socket.connect((host,port))
-        print("No Connect")
 
     def mySend(self,socket,send):
         socket.send(pickle.dumps(send))
-        print("No Send")
 
     def myReceive(self,socket):
         receive = socket.recv(4096)
@@ -50,7 +48,7 @@ class CLI(threading.Thread):
                         continue
 
                 self.myConnect(sock,self.hostname,self.port)
-                send = ["lock","read", self.siteID]
+                send = ["lock", self.siteID, "read"]
                 self.mySend(sock,send)
                 receive = self.myReceive(sock)
                 if receive == "grant":
@@ -58,10 +56,11 @@ class CLI(threading.Thread):
 
                 else:
                     print("not grant")
+                    print("received %s" % receive)
                     return False
 
                 self.myConnect(sock,quorum[0][1], quorum[0][2])
-                send = ["lock","read", self.siteID]
+                send = ["lock", self.siteID, "read"]
                 self.mySend(sock,send)
                 receive = self.myReceive(sock)
                 if receive == "grant":
@@ -72,7 +71,7 @@ class CLI(threading.Thread):
                     return False
 
                 self.myConnect(sock,quorum[1][1], quorum[1][2])
-                send = ["lock","read", self.siteID]
+                send = ["lock", self.siteID, "read"]
                 self.mySend(sock,send)
                 receive = self.myReceive(sock)
                 if receive == "grant":

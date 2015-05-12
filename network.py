@@ -33,7 +33,7 @@ class Network(threading.Thread):
 
     def handle(self, conn):
         message = pickle.loads(conn.recv(4092))
-        conn.send(pickle.dumps("ack"))
+        pprint(message)
         messageType = message[0]
         sender = message[1]
         ## We can have two types of locks, reads and writes. We handle both here.
@@ -43,32 +43,32 @@ class Network(threading.Thread):
             if (lockType == 'write'):
                 ## We are going to keep checking until we have no active locks to send the grant.
                 lockDict = { 'sender':sender, 'type':lockType }
-                with requestedLocksLock:
-                    requestedLocks.append(lockDict)
-                ## Loop until there are no activeLocks and we're next up, we send a grant.
+                with self.requestedLocksLock:
+                    self.requestedLocks.append(lockDict)
+                ## Loop until there are no self.activeLocks and we're next up, we send a grant.
                 while True:
-                    with requestedLocksLock, activeLocksLock:
-                        if not activeLocks and (requestedLocks[0] == lockDict):
-                            activeLocks.append(lockDict)
+                    with self.requestedLocksLock, self.activeLocksLock:
+                        if not self.activeLocks and (self.requestedLocks[0] == lockDict):
+                            self.activeLocks.append(lockDict)
                             break
                 conn.send(pickle.dumps("grant"))
                 conn.close()
 
             elif (lockType == 'read'):
                 lockDict = { 'sender':sender, 'type':lockType }
-                with requestedLocksLock:
-                    requestedLocks.append(lockDict)
-                ## Loop until there are no activeLocks and we're next up OR there is an activeLock, but it's a read.
+                with self.requestedLocksLock:
+                    self.requestedLocks.append(lockDict)
+                ## Loop until there are no self.activeLocks and we're next up OR there is an activeLock, but it's a read.
                 while True:
-                    with requestedLocksLock, activeLocksLock:
-                        if (not activeLocks and (requestedLocks[0] == lockDict)) or (activeLocks and activeLocks[0]['type'] == 'read'):
-                            activeLocks.append(lockDict)
+                    with self.requestedLocksLock, self.activeLocksLock:
+                        if (not self.activeLocks and (self.requestedLocks[0] == lockDict)) or (activeLocks and self.activeLocks[0]['type'] == 'read'):
+                            self.activeLocks.append(lockDict)
                             break
                 conn.send(pickle.dumps("grant"))
 
         elif (messageType == 'release'):
-            with activeLocksLock:
-                activeLocks = list(filter(lambda lock: lock['sender'] != sender, activeLocks))
+            with self.activeLocksLock:
+                self.activeLocks = list(filter(lambda lock: lock['sender'] != sender, self.activeLocks))
             conn.send(pickle.dumps("ack"))
         conn.close()
         return
