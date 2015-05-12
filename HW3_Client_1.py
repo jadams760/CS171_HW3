@@ -57,21 +57,23 @@ def CLI(siteID):
                     
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             myConnect(s,quorum[0][1], quorum[0][2])
-            mySend("Read")
+            send = ["Read", siteID]
+            mySend(send)
             message = myReceive(s)
             if message == "GrantRead":
                 continue
             else:
-                print("Incorrect Grant Message")
+                print("Incorrect Grant Message\n")
                 break
             
             myConnect(s,quorum[1][1], quorum[1][2])
-            mySend("Read")
+            send = ["Read", siteID]
+            mySend(send)
             message = myReceive(s)
             if message == "GrantRead":
                 continue
             else:
-                print("Incorrect Grant Message")
+                print("Incorrect Grant Message\n")
                 break
 
 
@@ -84,23 +86,34 @@ def CLI(siteID):
             message = myReceive(s)
             print(message)
 
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            myConnect(s,LOGHOST, LOGPORT)
+            send = ["Release",siteID]
+            mySend(send)
+            message = myReceive(s)
+            if message == "Acknowledge":
+                continue
+            else:
+                print("No Acknowledgement Received\n")
+                break
+            
+
             myConnect(s,quorum[0][1], quorum[0][2])
-            mySend("release")
+            send = ["Release", siteID]
+            mySend(send)
             s.close()
             
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
             myConnect(s,quorum[1][1], quorum[1][2])
-            mySend("release")
+            mySend(send)
             s.close()
             
 
                 
-        if x == "2":
+        elif x == "2":
             print("append")
 
             
-        if x == "3":
+        elif x == "3":
             print("exit")
             sys.exit(1)
 
@@ -109,4 +122,41 @@ def CLI(siteID):
             continue
 
 def Comm(siteID):
+    serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    uniquePort = PORT + siteID
+    serverSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    serverSocket.bind((HOSTNAME, uniquePort))
+    serverSocket.listen(5)
+
+
+    while True:
+        
+        (comSocket, address) = serverSocket.accept()
+        receive = myReceive(comSocket)
+        
+        if receive[0] == "Read":
+            while "w" in locks:
+                continue
+            locks[siteID-1] = "r"
+            mySend(comSocket,"GrantRead")
+            receive = myReceive(comSocket)
+            if receive[0] = "Release":
+                locks[receive[1]-1] = ''
+            else:
+                print("No Release\n")
+                break
+
+        elif
+            
+
+
+
+
+
+
+
+
+
+
+
     
