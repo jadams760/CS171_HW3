@@ -6,10 +6,6 @@ import time
 import sys
 from pprint import pprint
 
-class Action:
-    DELETE = 1
-    POST = 2
-
 class Network(threading.Thread):
     def __init__(self, port, actorLog, actorTable, actorDict, totalActors, actorID):
         threading.Thread.__init__(self)
