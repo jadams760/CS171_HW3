@@ -33,12 +33,11 @@ class CLI(threading.Thread):
         return pickle.loads(receive)
     def run(self):
         self.network.start()
-
         while True:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             userInput = input("Please Enter One of the Following and Press Enter:\n(1) Read\n(2) Append\n(3) Exit\n")
             if userInput == "1":
-                print("Read\n")
+##                print("Read\n")
                 quorum = []
                 quorum.append((self.siteID,localhost,9990+self.siteID))
                 while len(quorum) < 3:
@@ -54,13 +53,13 @@ class CLI(threading.Thread):
                 send = ["lock", self.siteID, "read"]
                 self.mySend(sock,send)
                 receive = self.myReceive(sock)
-                if receive == "grant":
-                    print("grant")
-
-                else:
-                    print("not grant")
-                    print("received %s" % receive)
-                    return False
+##                if receive == "grant":
+##                    print("grant")
+##
+##                else:
+####                    print("not grant")
+####                    print("received %s" % receive)
+##                    return False
                 sock.close()
 
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -68,25 +67,25 @@ class CLI(threading.Thread):
                 send = ["lock", self.siteID, "read"]
                 self.mySend(sock,send)
                 receive = self.myReceive(sock)
-                if receive == "grant":
-                    print("grant")
-
-                else:
-                    print("not grant")
-                    return False
+##                if receive == "grant":
+##                    print("grant")
+##
+##                else:
+##                    print("not grant")
+##                    return False
                 sock.close()
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
                 self.myConnect(sock,quorum[1][1], quorum[1][2])
                 send = ["lock", self.siteID, "read"]
                 self.mySend(sock,send)
-                receive = self.myReceive(sock)
-                if receive == "grant":
-                    print("grant")
-
-                else:
-                    print("not grant")
-                    return False
+##                receive = self.myReceive(sock)
+##                if receive == "grant":
+##                    print("grant")
+##
+##                else:
+##                    print("not grant")
+##                    return False
                 sock.close()
 
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -97,14 +96,16 @@ class CLI(threading.Thread):
                 self.mySend(sock,send)
                 receive = self.myReceive(sock)
                 numMessages = int(receive['numMessages'])
-                print("Read Success("+ str(numMessages) +" items to receive):")
+##                print("Read Success("+ str(numMessages) +" items to receive):")
                 send = ["ack"]
                 self.mySend(sock,send)
+                print("\n")
                 for i in range(numMessages):
                     receive = self.myReceive(sock)
                     print(receive)
                     send = ["ack"]
                     self.mySend(sock,send)
+                print("\n")
                 sock.close()
 
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -115,12 +116,13 @@ class CLI(threading.Thread):
                 send = ["release", self.siteID]
                 self.mySend(sock,send)
                 receive = self.myReceive(sock)
-                print(receive)
+##                print(receive)
                 sock.close()
 
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-                self.myConnect(sock,quorum[0][1], quorum[0][2]) ##send "release" to qSite1 and print "ack"
+                self.myConnect(sock,quorum[0][1], quorum[0][2]) ##send "release" to qSite1 and
+                "ack"
                 self.mySend(sock,send)
                 sock.close() ##close since no response needed after release
 
@@ -134,7 +136,90 @@ class CLI(threading.Thread):
             elif userInput == "2":
                 userInput = input("Please enter a message to append:\n")
                 userInput = userInput[:140]
-                print("Append " + userInput + "\n")
+
+                quorum = []
+                quorum.append((self.siteID,localhost,9990+self.siteID))
+                while len(quorum) < 3:
+                    qSite = random.choice(self.sites)
+                    if int(qSite[0]) == self.siteID:
+                        continue
+                    elif qSite not in quorum:
+                        quorum.append(qSite)
+                    else:
+                        continue
+##                print(quorum)
+                self.myConnect(sock,self.hostname,self.port)
+                send = ["lock", self.siteID, "write"]
+                self.mySend(sock,send)
+
+                receive = self.myReceive(sock)
+
+##                if receive == "grant":
+##                    print("grant")
+##
+##                else:
+##                    print("not grant")
+##                    return False
+                sock.close()
+
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self.myConnect(sock,quorum[1][1], quorum[1][2])
+                send = ["lock", self.siteID, "write"]
+                self.mySend(sock,send)
+                receive = self.myReceive(sock)
+
+##                if receive == "grant":
+##                    print("grant")
+##
+##                else:
+##                    print("not grant")
+##                    return False
+                sock.close()
+
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self.myConnect(sock,quorum[2][1], quorum[2][2])
+                send = ["lock", self.siteID, "write"]
+                self.mySend(sock,send)
+                receive = self.myReceive(sock)
+##                if receive == "grant":
+##                    print("grant")
+##
+##                else:
+##                    print("not grant")
+##                    return False
+                sock.close()
+
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self.myConnect(sock,self.logHost,self.logPort) ##send "append" to log and print ack
+                qList = [quorum[0][0],quorum[1][0],quorum[2][0]]
+                send = ["append", self.siteID, qList,userInput]
+                self.mySend(sock,send)
+                receive = self.myReceive(sock)
+##                print(receive + " from append resource")
+                sock.close()
+
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self.myConnect(sock,self.logHost,self.logPort)
+                send = ["release",self.siteID]
+                self.mySend(sock,send)
+                receive = self.myReceive(sock)
+##                print(receive + " from release resource")
+                sock.close()
+
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self.myConnect(sock,quorum[0][1], quorum[0][2]) ##send "release" to qSite1
+                self.mySend(sock,send)
+                sock.close() ##close since no response needed after release
+
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self.myConnect(sock,quorum[1][1], quorum[1][2]) ##send "release" to qSite2
+                self.mySend(sock,send)
+                sock.close() ##close since no response needed after release
+
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self.myConnect(sock,quorum[2][1], quorum[2][2]) ##send "release" to qSite2
+                self.mySend(sock,send)
+                sock.close() ##close since no response needed after release
 
             elif userInput == "3":
                 print("Exit\n")
