@@ -52,9 +52,9 @@ class Resource:
             returnMessage = { 'numMessages': len(self.log) }
             conn.send(pickle.dumps(returnMessage))
             conn.recv(4)
-            for i in numMessages:
-                conn.send(i)
-                conn.recv(4)
+            for i in self.log:
+                conn.send(pickle.dumps(i))
+                conn.recv(4096)
         conn.close()
         return
 
