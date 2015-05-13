@@ -1,4 +1,5 @@
 import socket
+import threading
 import pickle
 class Resource:
     def __init__(self, port, ipAddress):
@@ -25,7 +26,7 @@ class Resource:
         sender = firstMessage[1]
 
         if (messageType == 'release'):
-            conn.send('ack')
+            conn.send(pickle.dumps('ack'))
             print("Site%i release %s lock quorum %i, %i, and %i" % (self.currentLocker, self.quorumType, self.currentQuorum[0], self.currentQuorum[1], self.currentQuorum[2]))
             self.currentLocker = False
             self.currentQuorum = []
@@ -39,7 +40,7 @@ class Resource:
             logAdd = firstMessage[3]
             self.log.append(logAdd)
             self.quorumType = "exclusive"
-            conn.send('ack')
+            conn.send(pickle.dumps('ack'))
 
         elif (messageType == 'read'):
             if (self.currentLocker):
@@ -58,6 +59,6 @@ class Resource:
         return
 
 if __name__ == '__main__':
-    resource = Resource(10005, 'localhost')
+    resource = Resource(9999, 'localhost')
     resource.run()
 

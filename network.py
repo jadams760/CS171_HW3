@@ -61,7 +61,7 @@ class Network(threading.Thread):
                 ## Loop until there are no self.activeLocks and we're next up OR there is an activeLock, but it's a read.
                 while True:
                     with self.requestedLocksLock, self.activeLocksLock:
-                        if (not self.activeLocks and (self.requestedLocks[0] == lockDict)) or (activeLocks and self.activeLocks[0]['type'] == 'read'):
+                        if (not self.activeLocks and (self.requestedLocks[0] == lockDict)) or (self.activeLocks and self.activeLocks[0]['type'] == 'read'):
                             self.activeLocks.append(lockDict)
                             break
                 conn.send(pickle.dumps("grant"))

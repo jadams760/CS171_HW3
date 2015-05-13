@@ -20,11 +20,13 @@ class CLI(threading.Thread):
         self.port = port
         self.sites = sites
         self.network = network.Network(self.port,len(sites),self.siteID)
+        self.logHost = LogHost
+        self.logPort = LogPort
     def myConnect(self,socket,host,port):
         socket.connect((host,port))
 
-    def mySend(self,socket,send):
-        socket.send(pickle.dumps(send))
+    def mySend(self,sock,send):
+        sock.send(pickle.dumps(send))
 
     def myReceive(self,socket):
         receive = socket.recv(4096)
@@ -58,7 +60,9 @@ class CLI(threading.Thread):
                     print("not grant")
                     print("received %s" % receive)
                     return False
+                sock.close()
 
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.myConnect(sock,quorum[0][1], quorum[0][2])
                 send = ["lock", self.siteID, "read"]
                 self.mySend(sock,send)
@@ -69,6 +73,8 @@ class CLI(threading.Thread):
                 else:
                     print("not grant")
                     return False
+                sock.close()
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
                 self.myConnect(sock,quorum[1][1], quorum[1][2])
                 send = ["lock", self.siteID, "read"]
@@ -80,34 +86,44 @@ class CLI(threading.Thread):
                 else:
                     print("not grant")
                     return False
+                sock.close()
 
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-                self.myConnect(sock,LogHost,LogPort) ##send "read" to log and print response
-                qList = [quoum[0][0],quoum[1][0],quoum[2][0]]
-                send = ["read", qList]
-                self.mySend(socket,send)
-                receive = myReceive(sock)
-                print("Read Success("+int(receive)+" items to receive):")
-                send = ["ack", self.siteID]
+                self.myConnect(sock,self.logHost,self.logPort) ##send "read" to log and print response
+                qList = [quorum[0][0],quorum[1][0],quorum[2][0]]
+                send = ["read", self.siteID, qList]
                 self.mySend(sock,send)
-                for i in range(int(receive)):
-                    receive = myReceive(sock)
+                receive = self.myReceive(sock)
+                numMessages = int(receive['numMessages'])
+                print("Read Success("+ str(numMessages) +" items to receive):")
+                send = ["ack"]
+                self.mySend(sock,send)
+                for i in range(numMessages):
+                    receive = self.myReceive(sock)
                     print(receive)
-                    send = ["ack", self.siteID]
+                    send = ["ack"]
                     self.mySend(sock,send)
+                sock.close()
+
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 
+                self.myConnect(sock,self.logHost,self.logPort) ##send "read" to log and print response
 
                 send = ["release", self.siteID]
-                self.myConnect(sock,LogHost,LogPort) ##send "release" to Log and print "ack"
                 self.mySend(sock,send)
-                receive = myReceive(sock)
+                receive = self.myReceive(sock)
                 print(receive)
+                sock.close()
+
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
                 self.myConnect(sock,quorum[0][1], quorum[0][2]) ##send "release" to qSite1 and print "ack"
                 self.mySend(sock,send)
                 sock.close() ##close since no response needed after release
 
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.myConnect(sock,quorum[1][1], quorum[1][2]) ##send "release" to qSite2 and print "ack"
                 self.mySend(sock,send)
                 sock.close() ##close since no response needed after release
