@@ -33,8 +33,9 @@ class CLI(threading.Thread):
         return pickle.loads(receive)
     def run(self):
         self.network.start()
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
         while True:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             userInput = input("Please Enter One of the Following and Press Enter:\n(1) Read\n(2) Append\n(3) Exit\n")
             if userInput == "1":
                 print("Read\n")
