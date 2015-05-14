@@ -35,27 +35,25 @@ class CLI(threading.Thread):
         return pickle.loads(receive)
     def run(self):
         self.network.start()
-        
+
         while True:
-            
+
             userInput = input("Please Enter One of the Following and Press Enter:\n(1) Read\n(2) Append\n(3) Exit\n")
             if userInput == "1":
 ##                print("Read\n")
-                quorum = []
-                quorum.append((self.siteID,localhost,9990+self.siteID))
-                while len(quorum) < 3:
-                    qSite = random.choice(self.sites)
-                    if int(qSite[0]) == self.siteID:
-                        continue
-                    elif qSite not in quorum:
-                        quorum.append(qSite)
-                    else:
-                        continue
-
                 while True:
-            
+                    quorum = []
+                    quorum.append((self.siteID,localhost,9990+self.siteID))
+                    while len(quorum) < 3:
+                        qSite = random.choice(self.sites)
+                        if int(qSite[0]) == self.siteID:
+                            continue
+                        elif qSite not in quorum:
+                            quorum.append(qSite)
+                        else:
+                            continue
                     ##connect to quorum sites for "read"
-            
+
                     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     self.myConnect(sock,quorum[0][1], quorum[0][2]) ##send "lock" for "read" to qSite1
                     send = ["lock", self.siteID, "read",self.reqDict]
@@ -67,20 +65,24 @@ class CLI(threading.Thread):
                     send = ["lock", self.siteID, "read",self.reqDict]
                     self.mySend(sock,send)
                     sock.close()
-                    
+
                     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     self.myConnect(sock,quorum[2][1], quorum[2][2]) ##send "lock" for "read" to qSite3
                     send = ["lock", self.siteID, "read",self.reqDict]
                     self.mySend(sock,send)
                     sock.close()
-                    
-                    self.reqDict["requestID"] = self.reqDict["requestID"] + 1 ##increment local requestID
-                    
+
+
+
                     if self.event.wait(2):
-                        ##notify received all sites grant read
+                        self.reqDict["requestID"] = self.reqDict["requestID"] + 1 ##increment local requestID
+
+                        self.network.clearGrants() ##clear all collected grants on network thread
                         break
-                    
+
                     else:
+
+                        self.reqDict["requestID"] = self.reqDict["requestID"] + 1 ##increment local requestID
                         print("no")
                         ##timeout after no notification of grant
                         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -96,7 +98,7 @@ class CLI(threading.Thread):
                         self.mySend(sock,send)
                         sock.close()
 
-                        
+
                         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                         self.myConnect(sock,quorum[2][1], quorum[2][2]) ##send "nevermind" to qSite3
                         send = ["nevermind", self.siteID]
@@ -125,9 +127,9 @@ class CLI(threading.Thread):
                 print("\n")
                 sock.close()
 
-                
+
                 send = ["release", self.siteID] ##message to send for "release"
-                
+
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.myConnect(sock,self.logHost,self.logPort) ##send "release" to log
                 self.mySend(sock,send)
@@ -157,22 +159,20 @@ class CLI(threading.Thread):
             elif userInput == "2":
                 userInput = input("Please enter a message to append:\n")
                 userInput = userInput[:140]
-                
-                quorum = []
-                quorum.append((self.siteID,localhost,9990+self.siteID))
-                while len(quorum) < 3:
-                    qSite = random.choice(self.sites)
-                    if int(qSite[0]) == self.siteID:
-                        continue
-                    elif qSite not in quorum:
-                        quorum.append(qSite)
-                    else:
-                        continue
-
                 while True:
-                    
-                    ##connect to quorum sites for "append"
-                    
+
+                    quorum = []
+                    quorum.append((self.siteID,localhost,9990+self.siteID))
+                    while len(quorum) < 3:
+                        qSite = random.choice(self.sites)
+                        if int(qSite[0]) == self.siteID:
+                            continue
+                        elif qSite not in quorum:
+                            quorum.append(qSite)
+                        else:
+                            continue
+     ##connect to quorum sites for "append"
+
                     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     self.myConnect(sock,quorum[0][1], quorum[0][2]) ##send "lock" for "write" to qSite1
                     send = ["lock", self.siteID, "write",self.reqDict]
@@ -184,22 +184,25 @@ class CLI(threading.Thread):
                     send = ["lock", self.siteID, "write",self.reqDict]
                     self.mySend(sock,send)
                     sock.close()
-                    
+
                     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     self.myConnect(sock,quorum[2][1], quorum[2][2]) ##send "lock" for "write" to qSite1
                     send = ["lock", self.siteID, "write",self.reqDict]
                     self.mySend(sock,send)
                     sock.close()
 
-                    self.reqDict["requestID"] = self.reqDict["requestID"] + 1 ##increment local requestID
 
-                    
-                    if self.event.wait(0.5):
+
+
+                    if self.event.wait(3):
                         ##notify received all sites grant read
+                        self.reqDict["requestID"] = self.reqDict["requestID"] + 1 ##increment local requestID
+                        self.network.clearGrants() ##clear all collected grants on network thread
                         break
-                    
+
                     else:
                         ##timeout after no notification of grant
+                        self.reqDict["requestID"] = self.reqDict["requestID"] + 1 ##increment local requestID
                         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                         self.myConnect(sock,quorum[0][1], quorum[0][2]) ##send "nevermind" to qSite1
                         send = ["nevermind", self.siteID]
@@ -211,7 +214,7 @@ class CLI(threading.Thread):
                         send = ["nevermind", self.siteID]
                         self.mySend(sock,send)
                         sock.close()
-                        
+
                         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                         self.myConnect(sock,quorum[2][1], quorum[2][2]) ##send "nevermind" to qSite3
                         send = ["nevermind", self.siteID]
@@ -228,14 +231,14 @@ class CLI(threading.Thread):
                 self.mySend(sock,send)
                 receive = self.myReceive(sock)
                 sock.close()
-                
+
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.myConnect(sock,self.logHost,self.logPort)
                 send = ["release",self.siteID]
                 self.mySend(sock,send)
                 receive = self.myReceive(sock)
                 sock.close()
-                
+
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.myConnect(sock,quorum[0][1], quorum[0][2]) ##send "release" to qSite1
                 self.mySend(sock,send)
@@ -250,7 +253,7 @@ class CLI(threading.Thread):
                 self.myConnect(sock,quorum[2][1], quorum[2][2]) ##send "release" to qSite3
                 self.mySend(sock,send)
                 sock.close()
-                
+
             elif userInput == "3":
                 print("Exit\n")
                 return False

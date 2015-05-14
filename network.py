@@ -54,16 +54,17 @@ class Network(threading.Thread):
                 with self.requestedLocksLock:
                     self.requestedLocks.append(lockDict)
                 ## Loop until there are no self.activeLocks and we're next up, we send a grant.
-                while True:
+                while lockDict in self.requestedLocks:
                     with self.requestedLocksLock, self.activeLocksLock:
-                        if not self.activeLocks and (self.requestedLocks[0] == lockDict):
+                        if not self.activeLocks and lockDict in self.requestedLocks and (self.requestedLocks[0] == lockDict):
                             self.activeLocks.append(lockDict)
                             self.requestedLocks.remove(lockDict)
+                            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                            sock.connect((senderInfo[1],senderInfo[2]))
+                            sock.send(pickle.dumps(['grant', self.actorID, requestID]))
+                            sock.close()
                             break
-                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                sock.connect((senderInfo[1],senderInfo[2]))
-                sock.send(pickle.dumps(['grant', self.actorID, requestID]))
-                sock.close()
+
 
 
             elif (lockType == 'read'):
@@ -72,29 +73,33 @@ class Network(threading.Thread):
                 with self.requestedLocksLock:
                     self.requestedLocks.append(lockDict)
                 ## Loop until there are no self.activeLocks and we're next up OR there is an activeLock, but it's a read.
-                while True:
+                while lockDict in self.requestedLocks:
                     with self.requestedLocksLock, self.activeLocksLock:
-                        if (not self.activeLocks and (self.requestedLocks[0] == lockDict)) or (self.activeLocks and self.activeLocks[0]['type'] == 'read'):
+                        if (lockDict in self.requestedLocks and not self.activeLocks and (self.requestedLocks[0] == lockDict)) or (lockDict in self.RequestedLocks and self.activeLocks and self.activeLocks[0]['type'] == 'read'):
                             self.activeLocks.append(lockDict)
                             self.requestedLocks.remove(lockDict)
+                            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                            sock.connect((senderInfo[1],senderInfo[2]))
+                            sock.send(pickle.dumps(['grant', self.actorID, requestID]))
+                            sock.close()
                             break
-                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                sock.connect((senderInfo[1],senderInfo[2]))
-                sock.send(pickle.dumps(['grant', self.actorID, requestID]))
-                sock.close()
         elif (messageType == 'release'):
             with self.activeLocksLock:
                 self.activeLocks = list(filter(lambda lock: lock['sender'] != sender, self.activeLocks))
         elif (messageType == 'grant'):
+            pprint(message)
+            print("Self.RequestID: %i, self.numGranted: %i" %( self.requestID['requestID'], self.numGranted))
             requestID = message[2]
             ## Ignore any requests that are not our current request ID.
-            if (requestID != self.requestID['requestID']):
+            if (requestID['requestID'] != self.requestID['requestID']):
                 return
             with self.grantLock:
                 self.numGranted += 1
                 if (self.numGranted >= 3):
                     self.lockEvent.set()
+                    self.lockEvent.clear()
         elif (messageType == 'nevermind'):
+            print("nevermind received")
             with self.requestedLocksLock, self.activeLocksLock:
                 self.requestedLocks = list(filter(lambda lock: lock['sender'] != sender, self.activeLocks))
                 self.activeLocks = list(filter(lambda lock: lock['sender'] != sender, self.activeLocks))
