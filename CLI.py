@@ -72,7 +72,7 @@ class CLI(threading.Thread):
 
 
 
-                    if self.event.wait(2):
+                    if self.event.wait(1):
                         self.reqDict["requestID"] = self.reqDict["requestID"] + 1 ##increment local requestID
 
                         self.network.clearGrants() ##clear all collected grants on network thread
@@ -81,7 +81,7 @@ class CLI(threading.Thread):
                     else:
 
                         self.reqDict["requestID"] = self.reqDict["requestID"] + 1 ##increment local requestID
-                        print("no")
+
                         ##timeout after no notification of grant
                         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                         self.myConnect(sock,quorum[0][1], quorum[0][2]) ##send "nevermind" to qSite1
@@ -192,7 +192,7 @@ class CLI(threading.Thread):
 
 
 
-                    if self.event.wait(3):
+                    if self.event.wait(1):
                         ##notify received all sites grant read
                         self.reqDict["requestID"] = self.reqDict["requestID"] + 1 ##increment local requestID
                         self.network.clearGrants() ##clear all collected grants on network thread
@@ -253,7 +253,6 @@ class CLI(threading.Thread):
                 sock.close()
 
             elif userInput == "3":
-                print("Exit\n")
                 return False
 
             else:

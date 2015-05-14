@@ -87,8 +87,6 @@ class Network(threading.Thread):
             with self.activeLocksLock:
                 self.activeLocks = list(filter(lambda lock: lock['sender'] != sender, self.activeLocks))
         elif (messageType == 'grant'):
-            pprint(message)
-            print("Self.RequestID: %i, self.numGranted: %i" %( self.requestID['requestID'], self.numGranted))
             requestID = message[2]
             ## Ignore any requests that are not our current request ID.
             if (requestID['requestID'] != self.requestID['requestID']):
@@ -99,7 +97,6 @@ class Network(threading.Thread):
                     self.lockEvent.set()
                     self.lockEvent.clear()
         elif (messageType == 'nevermind'):
-            print("nevermind received")
             with self.requestedLocksLock, self.activeLocksLock:
                 self.requestedLocks = list(filter(lambda lock: lock['sender'] != sender, self.activeLocks))
                 self.activeLocks = list(filter(lambda lock: lock['sender'] != sender, self.activeLocks))
