@@ -160,7 +160,7 @@ class CLI(threading.Thread):
                 while True:
 
                     quorum = []
-                    quorum.append((self.siteID,self.sites[self.siteID-1][1],self.sites[self.siteID-1][2])
+                    quorum.append((self.siteID,self.sites[self.siteID-1][1],self.sites[self.siteID-1][2]))
                     while len(quorum) < 3:
                         qSite = random.choice(self.sites)
                         if int(qSite[0]) == self.siteID:
