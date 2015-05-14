@@ -59,6 +59,6 @@ class Resource:
         return
 
 if __name__ == '__main__':
-    resource = Resource(9999, 'localhost')
+    resource = Resource(10000, '172.30.0.73')
     resource.run()
 
