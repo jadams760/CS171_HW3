@@ -61,13 +61,14 @@ class Network(threading.Thread):
                             self.requestedLocks.remove(lockDict)
                             break
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                socket.connect((senderInfo[1],senderInfo[2]))
+                sock.connect((senderInfo[1],senderInfo[2]))
                 sock.send(pickle.dumps(['grant', self.actorID, requestID]))
                 sock.close()
 
 
             elif (lockType == 'read'):
                 lockDict = { 'sender':sender, 'type':lockType }
+
                 with self.requestedLocksLock:
                     self.requestedLocks.append(lockDict)
                 ## Loop until there are no self.activeLocks and we're next up OR there is an activeLock, but it's a read.
@@ -78,7 +79,7 @@ class Network(threading.Thread):
                             self.requestedLocks.remove(lockDict)
                             break
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                socket.connect((senderInfo[1],senderInfo[2]))
+                sock.connect((senderInfo[1],senderInfo[2]))
                 sock.send(pickle.dumps(['grant', self.actorID, requestID]))
                 sock.close()
         elif (messageType == 'release'):
