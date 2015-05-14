@@ -19,7 +19,7 @@ class CLI(threading.Thread):
         self.sites = [(1,'52.7.152.215',10000), (2,'54.94.193.66',10000), (3,'52.74.189.123',10000), (4,'52.74.190.114',10000),(5,'52.74.160.204',10000)]
         self.reqDict = {"requestID":0}
         self.event = threading.Event()
-        self.network = network.Network(self.port,len(sites),self.siteID,self.event,self.sites,self.reqDict, self.hostname)
+        self.network = network.Network(self.port,len(self.sites),self.siteID,self.event,self.sites,self.reqDict, self.hostname)
         self.logHost = '52.74.189.66'
         self.logPort = 10000
     def myConnect(self,socket,host,port):
