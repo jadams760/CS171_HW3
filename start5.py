@@ -3,6 +3,6 @@ import network
 import CLI
 
 if __name__ == '__main__':
-    t = CLI.CLI(1,'172.30.0.75',10000)
+    t = CLI.CLI(5,'172.30.0.75',10000)
     t.start()
 
