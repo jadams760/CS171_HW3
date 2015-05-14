@@ -18,6 +18,6 @@ if __name__ == '__main__':
         t = Resource(int(local[1]), local[0])
         t.run()
     else:
-        t = CLI.CLI(siteID,local[0],int(local[1]), sites, log[0], log[1])
+        t = CLI.CLI(siteID,local[0],int(local[1]), sites, log[0], int(log[1]))
         t.start()
 
