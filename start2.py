@@ -3,7 +3,6 @@ import network
 import CLI
 
 if __name__ == '__main__':
-    sites = [(1,'localhost',9991), (2,'localhost',9992), (3,'localhost',9993), (4,'localhost',9994),(5,'localhost',9995)]
-    t = CLI.CLI(2,sites,'localhost',9992,'localhost',9999)
+    t = CLI.CLI(1,'172.30.0.51',10000)
     t.start()
 
