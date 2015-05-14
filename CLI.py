@@ -11,7 +11,7 @@ from pprint import pprint
 
 
 class CLI(threading.Thread):
-    def __init__(self, siteID, sites, hostname, port):
+    def __init__(self, siteID, hostname, port):
         threading.Thread.__init__(self)
         self.siteID = siteID
         self.hostname = hostname
