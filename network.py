@@ -75,7 +75,7 @@ class Network(threading.Thread):
                 ## Loop until there are no self.activeLocks and we're next up OR there is an activeLock, but it's a read.
                 while lockDict in self.requestedLocks:
                     with self.requestedLocksLock, self.activeLocksLock:
-                        if (lockDict in self.requestedLocks and not self.activeLocks and (self.requestedLocks[0] == lockDict)) or (lockDict in self.RequestedLocks and self.activeLocks and self.activeLocks[0]['type'] == 'read'):
+                        if (lockDict in self.requestedLocks and not self.activeLocks and (self.requestedLocks[0] == lockDict)) or (lockDict in self.requestedLocks and self.activeLocks and self.activeLocks[0]['type'] == 'read'):
                             self.activeLocks.append(lockDict)
                             self.requestedLocks.remove(lockDict)
                             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
