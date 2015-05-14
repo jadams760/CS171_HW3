@@ -4,7 +4,7 @@ import resource
 
 if __name__ == '__main__':
     inputFile = "config.txt"
-    with open(inputFile, r) as f:
+    with open(inputFile, 'r') as f:
         siteID = int(f.readline().strip())
         site1 = f.readline().strip().split()
         site2 = f.readline().strip().split()
