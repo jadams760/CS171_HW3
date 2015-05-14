@@ -10,10 +10,10 @@ import network
 from pprint import pprint
 
 localhost = "localhost"
-sites = [(1,'localhost',9991), (2,'localhost',9992), (3,'localhost',9993), (4,'localhost',9994),(5,'localhost',9995)]
+sites = [(1,'52.7.152.215',10000), (2,'54.94.193.66',10000), (3,'52.74.189.123',10000), (4,'52.74.190.114',10000),(5,'52.74.160.204',10000)]
 
 class CLI(threading.Thread):
-    def __init__(self, siteID, sites, hostname, port, LogHost, LogPort):
+    def __init__(self, siteID, sites, hostname, port):
         threading.Thread.__init__(self)
         self.siteID = siteID
         self.hostname = hostname
@@ -22,8 +22,8 @@ class CLI(threading.Thread):
         self.reqDict = {"requestID":0}
         self.event = threading.Event()
         self.network = network.Network(self.port,len(sites),self.siteID,self.event,self.sites,self.reqDict)
-        self.logHost = LogHost
-        self.logPort = LogPort
+        self.logHost = '52.74.189.66'
+        self.logPort = 10000
     def myConnect(self,socket,host,port):
         socket.connect((host,port))
 
@@ -260,18 +260,5 @@ class CLI(threading.Thread):
 
             else:
                 print("Incorrect input type\n")
-
-
-def main():
-
-    t = CLI(1,sites,'localhost',9001,'localhost',9999)
-    t.start()
-
-if __name__ == "__main__":
-    main()
-
-
-
-
 
 
