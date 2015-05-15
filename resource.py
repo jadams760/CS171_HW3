@@ -7,7 +7,7 @@ class Resource:
         self.portNum = port
         self.log = []
         self.currentLocker = False
-        self.currentQuorum = []
+        self.currentQuorum = {}
         self.quorumType = ""
     def run(self):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -27,27 +27,23 @@ class Resource:
 
         if (messageType == 'release'):
             conn.send(pickle.dumps('ack'))
-            print("Site%i release %s lock quorum %i, %i, and %i" % (self.currentLocker, self.quorumType, self.currentQuorum[0], self.currentQuorum[1], self.currentQuorum[2]))
+            print("Site%i release %s lock quorum %i, %i, and %i" % (sender, self.quorumType, self.currentQuorum[sender][0], self.currentQuorum[sender][1], self.currentQuorum[sender][2]))
             self.currentLocker = False
-            self.currentQuorum = []
+            self.currentQuorum[sender] = []
 
         elif (messageType == 'append'):
-            if (self.currentLocker):
-                print ("something real bad happened.")
             self.currentLocker = sender
-            self.currentQuorum = firstMessage[2]
-            print("Site%i exclusive lock quorum %i, %i, and %i" % (self.currentLocker, self.currentQuorum[0], self.currentQuorum[1], self.currentQuorum[2]))
+            self.currentQuorum[sender] = firstMessage[2]
+            print("Site%i exclusive lock quorum %i, %i, and %i" % (sender, self.currentQuorum[sender][0], self.currentQuorum[sender][1], self.currentQuorum[sender][2]))
             logAdd = firstMessage[3]
             self.log.append(logAdd)
             self.quorumType = "exclusive"
             conn.send(pickle.dumps('ack'))
 
         elif (messageType == 'read'):
-            if (self.currentLocker):
-                print ("something real bad happened.")
             self.currentLocker = sender
-            self.currentQuorum = firstMessage[2]
-            print("Site%i shared lock quorum %i, %i, and %i" % (self.currentLocker, self.currentQuorum[0], self.currentQuorum[1], self.currentQuorum[2]))
+            self.currentQuorum[sender] = firstMessage[2]
+            print("Site%i shared lock quorum %i, %i, and %i" % (sender, self.currentQuorum[sender][0], self.currentQuorum[sender][1], self.currentQuorum[sender][2]))
             self.quorumType = 'shared'
             returnMessage = { 'numMessages': len(self.log) }
             conn.send(pickle.dumps(returnMessage))
